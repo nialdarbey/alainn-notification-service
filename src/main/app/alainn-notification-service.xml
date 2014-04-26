@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:apple-push="http://www.mulesoft.org/schema/mule/apple-push" xmlns:smtp="http://www.mulesoft.org/schema/mule/smtp" xmlns:twilio="http://www.mulesoft.org/schema/mule/twilio" xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:mulexml="http://www.mulesoft.org/schema/mule/xml" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:ws="http://www.mulesoft.org/schema/mule/ws" xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper"
+	xmlns:https="http://www.mulesoft.org/schema/mule/https"
+	xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting"
+	xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:cxf="http://www.mulesoft.org/schema/mule/cxf"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.5.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/xml http://www.mulesoft.org/schema/mule/xml/current/mule-xml.xsd
+http://www.mulesoft.org/schema/mule/https http://www.mulesoft.org/schema/mule/https/current/mule-https.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/cxf http://www.mulesoft.org/schema/mule/cxf/current/mule-cxf.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
+http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd
+http://www.mulesoft.org/schema/mule/ws http://www.mulesoft.org/schema/mule/ws/current/mule-ws.xsd
+http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schema/mule/ee/data-mapper/current/mule-data-mapper.xsd
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-current.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd
+http://www.mulesoft.org/schema/mule/twilio http://www.mulesoft.org/schema/mule/twilio/1.0/mule-twilio.xsd
+http://www.mulesoft.org/schema/mule/smtp http://www.mulesoft.org/schema/mule/smtp/current/mule-smtp.xsd
+http://www.mulesoft.org/schema/mule/apple-push http://www.mulesoft.org/schema/mule/apple-push/3.4/mule-apple-push.xsd">
+
+	<https:connector name="httpsConnector" cookieSpec="netscape"
+		validateConnections="true" sendBufferSize="0" receiveBufferSize="0"
+		receiveBacklog="0" clientSoTimeout="10000" serverSoTimeout="10000"
+		socketSoLinger="0" doc:name="HTTP\HTTPS">
+		<service-overrides
+			messageFactory="org.mule.transport.http.HttpMultipartMuleMessageFactory" />
+		<https:tls-key-store path="keystore.jks"
+			keyPassword="changeit" storePassword="changeit" />
+	</https:connector>
+	<mulexml:namespace-manager
+		includeConfigNamespaces="true">
+		<mulexml:namespace prefix="mes"
+			uri="http://www.alainn.com/SOA/message/1.0" />
+		<mulexml:namespace prefix="mod"
+			uri="http://www.alainn.com/SOA/model/1.0" />
+	</mulexml:namespace-manager>
+	<context:property-placeholder location="config.prod.properties" />
+
+	<db:mysql-config name="MySQL_Configuration"
+		host="mule-demo-repository.cdumb7bgzajt.us-east-1.rds.amazonaws.com"
+		port="3306" user="mule" password="Mule1379" database="alainn"
+		doc:name="MySQL Configuration" />
+    <twilio:config name="Twilio" accountSid="xx" authToken="x" doc:name="Twilio"/>
+    <apple-push:config name="Apple_Push_Notifications" host="x" port="1234" keystore="x" keystorePassword="x" doc:name="Apple Push Notifications"/>
+
+	<flow name="NotificationserviceFlow1" doc:name="NotificationserviceFlow1">
+		<https:inbound-endpoint exchange-pattern="request-response"
+			host="localhost" port="${https.port}" path="notification-service"
+			doc:name=":8081/notification-service" connector-ref="httpsConnector" />
+		<cxf:proxy-service doc:name="Proxy service"
+			namespace="http://www.alainn.com/SOA/service/Notification/1.0" port="NotificationPort"
+			service="NotificationService" wsdlLocation="service/NotificationService.wsdl"
+			payload="body">
+			<cxf:schemaLocations>
+				<cxf:schemaLocation>service/SOA-Message-1.0.xsd</cxf:schemaLocation>
+			</cxf:schemaLocations>
+		</cxf:proxy-service>
+		<set-variable variableName="opName"
+			value="#[xpath('fn:local-name(/*)')]" doc:name="opName" />
+		<choice doc:name="Choice">
+			<when expression="#[opName == 'notifySKUItemMovement']">
+				<db:select config-ref="MySQL_Configuration"
+					doc:name="select customers whose wish matches sku and haven't received a notification in last 24 hrs">
+					<db:parameterized-query><![CDATA[
+                    	select c.id, c.first_name, c.sms, c.email, c.mobile_device_token, npt.name, w.wish_id 
+                    	from wish w, customer c, notification_preference np, notification_preference_type npt, notification n
+                     	where w.customer_id != #[xpath:/mes:notifySKUItemMovement/mod:CustomerId] 
+                     	and w.sku_item_id = #[xpath:/mes:notifySKUItemMovement/mod:TransactedSku/sku] 
+                     	and n.wish_id = w.id 
+                     	and date_diff(n.date, today()) < ONE_DAY) 
+                     	and np.customer_id = c.id
+                     	and np.notification_preference_type_id = npt.id 
+                    ]]></db:parameterized-query>
+				</db:select>
+				<foreach doc:name="For Each Record in ResultSet">
+					<vm:outbound-endpoint path="#[payload.name]"
+						exchange-pattern="one-way" doc:name="email | sms | web | mobile-push" />
+				</foreach>
+				<db:insert config-ref="MySQL_Configuration" doc:name="insert notification">
+					<db:parameterized-query><![CDATA[insert into notification(date, wish_id) values(now(), payload.wish_id)]]></db:parameterized-query>
+				</db:insert>
+			</when>
+			<otherwise>
+				<scripting:component doc:name="Exception">
+					<scripting:script engine="Groovy"><![CDATA[throw new RuntimeException("Unknown Operation: " + flowVars.opName);]]></scripting:script>
+				</scripting:component>
+			</otherwise>
+		</choice>
+        <catch-exception-strategy doc:name="Catch Exception Strategy">
+            <logger message="We don't care too much!" level="INFO" doc:name="We don't care too much!"/>
+        </catch-exception-strategy>
+
+	</flow>
+	<flow name="mobile-push" doc:name="mobile-push">
+		<vm:inbound-endpoint exchange-pattern="one-way"
+			path="mobile-push" doc:name="mobile-push" />
+		<apple-push:send deviceToken="#[payload.mobile_device_token]"
+			alert="Hello #[payload.first_name]. Your Wish-list item, #[payload.item_name], is in high demand. Better hurry up if you want to grab one before we run out! :)"
+			sound="default" config-ref="Apple_Push_Notifications" doc:name="Send Notification">
+		</apple-push:send>
+	</flow>
+	<flow name="web" doc:name="web">
+		<vm:inbound-endpoint exchange-pattern="one-way"
+			path="web" doc:name="web" />
+        <http:outbound-endpoint exchange-pattern="request-response" host="localhost" port="8081" method="POST" doc:name="Firebase Notification"/>
+	</flow>
+	<flow name="email" doc:name="email">
+		<vm:inbound-endpoint exchange-pattern="one-way"
+			path="email" doc:name="email" />
+        <smtp:outbound-endpoint host="localhost" responseTimeout="10000" doc:name="SMTP"/>
+	</flow>
+	<flow name="sms" doc:name="sms">
+		<vm:inbound-endpoint exchange-pattern="one-way"
+			path="sms" doc:name="sms" />
+        <twilio:send-sms-message config-ref="Twilio" body="Hello #[payload.first_name]. Your Wish-list item, #[payload.item_name], is in high demand. Better hurry up if you want to grab one before we run out! :)" from="Álainn Cosmetics" to="#[payload.mobile]" doc:name="SMS Notification"/>
+	</flow>
+
+
+</mule>
