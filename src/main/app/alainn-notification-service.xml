@@ -51,6 +51,7 @@ http://www.mulesoft.org/schema/mule/apple-push http://www.mulesoft.org/schema/mu
 		doc:name="MySQL Configuration" />
     <twilio:config name="Twilio" accountSid="xx" authToken="x" doc:name="Twilio"/>
     <apple-push:config name="Apple_Push_Notifications" host="x" port="1234" keystore="x" keystorePassword="x" doc:name="Apple Push Notifications"/>
+    <smtp:gmail-connector name="Gmail" validateConnections="true" doc:name="Gmail"/>
 
 	<flow name="NotificationserviceFlow1" doc:name="NotificationserviceFlow1">
 		<https:inbound-endpoint exchange-pattern="request-response"
@@ -71,22 +72,27 @@ http://www.mulesoft.org/schema/mule/apple-push http://www.mulesoft.org/schema/mu
 				<db:select config-ref="MySQL_Configuration"
 					doc:name="select customers whose wish matches sku and haven't received a notification in last 24 hrs">
 					<db:parameterized-query><![CDATA[
-                    	select c.id, c.first_name, c.sms, c.email, c.mobile_device_token, npt.name, w.wish_id 
-                    	from wish w, customer c, notification_preference np, notification_preference_type npt, notification n
-                     	where w.customer_id != #[xpath:/mes:notifySKUItemMovement/mod:CustomerId] 
+                    	select c.id, c.first_name, c.sms, c.email, c.mobile_device_token, nt.id as notification_type_id, nt.name, w.wish_id 
+                    	from wish w, customer c, notification_preference np, notification_type nt
+                     	where w.customer_id = #[xpath:/mes:notifySKUItemMovement/mod:CustomerId] 
                      	and w.sku_item_id = #[xpath:/mes:notifySKUItemMovement/mod:TransactedSku/sku] 
-                     	and n.wish_id = w.id 
-                     	and date_diff(n.date, today()) < ONE_DAY) 
                      	and np.customer_id = c.id
-                     	and np.notification_preference_type_id = npt.id 
+                     	and np.notification_type_id = nt.id 
+                     	and not w.id in
+                     		(select n.wish_id from notification n, wish w, sku_item si
+	                     	where n.wish_id = w.id
+	                     	and w.sku_item_id = si.id
+	                     	and w.customer_id != #[xpath:/mes:notifySKUItemMovement/mod:CustomerId]
+	                     	and datediff(n.date, curdate()) >= 1)
+                     	 
                     ]]></db:parameterized-query>
 				</db:select>
 				<foreach doc:name="For Each Record in ResultSet">
 					<vm:outbound-endpoint path="#[payload.name]"
-						exchange-pattern="one-way" doc:name="email | sms | web | mobile-push" />
+						exchange-pattern="one-way" doc:name="email | sms | web | apple-push" />
 				</foreach>
 				<db:insert config-ref="MySQL_Configuration" doc:name="insert notification">
-					<db:parameterized-query><![CDATA[insert into notification(date, wish_id) values(now(), payload.wish_id)]]></db:parameterized-query>
+					<db:parameterized-query><![CDATA[insert into notification(date, wish_id, notification_type_id) values(curdate(), payload.wish_id, payload.notification_type_id)]]></db:parameterized-query>
 				</db:insert>
 			</when>
 			<otherwise>
@@ -102,10 +108,10 @@ http://www.mulesoft.org/schema/mule/apple-push http://www.mulesoft.org/schema/mu
 	</flow>
 	<flow name="mobile-push" doc:name="mobile-push">
 		<vm:inbound-endpoint exchange-pattern="one-way"
-			path="mobile-push" doc:name="mobile-push" />
+			path="apple-push" doc:name="apple-push" />
 		<apple-push:send deviceToken="#[payload.mobile_device_token]"
 			alert="Hello #[payload.first_name]. Your Wish-list item, #[payload.item_name], is in high demand. Better hurry up if you want to grab one before we run out! :)"
-			sound="default" config-ref="Apple_Push_Notifications" doc:name="Send Notification">
+			sound="default" config-ref="Apple_Push_Notifications" doc:name="Apple Push Notification">
 		</apple-push:send>
 	</flow>
 	<flow name="web" doc:name="web">
@@ -116,7 +122,7 @@ http://www.mulesoft.org/schema/mule/apple-push http://www.mulesoft.org/schema/mu
 	<flow name="email" doc:name="email">
 		<vm:inbound-endpoint exchange-pattern="one-way"
 			path="email" doc:name="email" />
-        <smtp:outbound-endpoint host="localhost" responseTimeout="10000" doc:name="SMTP"/>
+        <smtp:outbound-endpoint host="smtp.gmail.com" responseTimeout="10000" doc:name="Email notification" connector-ref="Gmail" from="notifications@alainn-cosmetics.com" password="Mule1379" subject="Your wish list item is running out of stock" to="#[payload.email]" user="muleworkshop1"/>
 	</flow>
 	<flow name="sms" doc:name="sms">
 		<vm:inbound-endpoint exchange-pattern="one-way"
