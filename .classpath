@@ -9,5 +9,6 @@
 	<classpathentry kind="src" path="src/main/api"/>
 	<classpathentry kind="con" path="MULE_LIB/Twilio"/>
 	<classpathentry kind="con" path="MULE_LIB/Apple Push Notifications"/>
+	<classpathentry kind="con" path="MULE_LIB"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
