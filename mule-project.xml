@@ -4,4 +4,5 @@
     <description></description>
     <muleExtension name="Twilio" qualifier="org.mule.tooling.ui.contribution.twilio"/>
     <muleExtension name="Apple Push Notifications" qualifier="org.mule.tooling.ui.contribution.apple-push"/>
+    <muleExtension name="Secure Property Placeholder" qualifier="org.mule.tooling.ui.contribution.secure-property-placeholder"/>
 </mule-project>

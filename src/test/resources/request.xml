@@ -1,0 +1,24 @@
+      <ns:notifySKUItemMovement xmlns:ns="http://www.alainn.com/SOA/message/1.0" xmlns:ns1="http://www.alainn.com/SOA/model/1.0">
+         <ns1:CustomerId>61</ns1:CustomerId>
+         <!--1 or more repetitions:-->
+         <ns1:TransactedSku>
+            <id>B0044B4KTI</id>
+            <sku>B0044B4KTI</sku>
+            <transactionQuantity>23</transactionQuantity>
+         </ns1:TransactedSku>
+         <ns1:TransactedSku>
+            <id>B0044B4KTI</id>
+            <sku>B0044B4KTI</sku>
+            <transactionQuantity>23</transactionQuantity>
+         </ns1:TransactedSku>
+         <ns1:TransactedSku>
+            <id>B0044B4KTI</id>
+            <sku>B0044B4KTI</sku>
+            <transactionQuantity>23</transactionQuantity>
+         </ns1:TransactedSku>
+         <ns1:TransactedSku>
+            <id>B0044B4KTI</id>
+            <sku>B0044B4KTI</sku>
+            <transactionQuantity>23</transactionQuantity>
+         </ns1:TransactedSku>
+      </ns:notifySKUItemMovement>
