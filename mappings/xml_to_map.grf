@@ -16,17 +16,16 @@
 <Field __index="7" __sourcePath="{http://www.alainn.com/SOA/model/1.0=ns1,http://www.alainn.com/SOA/message/1.0=ns0}/ns0:notifySKUItemMovement/ns1:TransactedSku/images/image/@text()" containerType="SINGLE" label="text()" name="text" type="string"/>
 </Record>
 </Metadata>
-<Metadata __index="0" __referenceCounter="1" __sourcePath="{http://www.alainn.com/SOA/message/1.0=ns0}/ns0:notifySKUItemMovement" _dataStructure="OBJECT" _id="__id" _type="Input" id="5ea3ff53-fd6d-4980-9b79-c4c00d4d72f9">
+<Metadata __index="0" __referenceCounter="0" __sourcePath="{http://www.alainn.com/SOA/message/1.0=ns0}/ns0:notifySKUItemMovement" _dataStructure="OBJECT" _id="__id" _type="Input" id="5ea3ff53-fd6d-4980-9b79-c4c00d4d72f9">
 <Record fieldDelimiter="," name="notifySKUItemMovement" recordDelimiter="\n\\|\r\n\\|\r" type="delimited">
 <Field __artificialType="_id" __systemManaged="true" name="__id" type="string"/>
 <Field __index="0" __sourcePath="{http://www.alainn.com/SOA/model/1.0=ns1,http://www.alainn.com/SOA/message/1.0=ns0}/ns0:notifySKUItemMovement/ns1:CustomerId" containerType="SINGLE" label="CustomerId" name="CustomerId" type="string"/>
 </Record>
 </Metadata>
-<Metadata __index="0" __referenceCounter="2" __sourcePath="{}/skus" _dataStructure="SINGLE_DIMENSIONAL_COLLECTION" _id="__id" _type="Output" id="7e69fa3d-93cf-4c9c-bc1a-833496773ed1">
+<Metadata __index="0" __referenceCounter="1" __sourcePath="{}/skus" _dataStructure="SINGLE_DIMENSIONAL_COLLECTION" _id="__id" _type="Output" id="746b2427-f5b5-4d4d-9982-c2b737698755">
 <Record fieldDelimiter="," name="skus" recordDelimiter="\n\\|\r\n\\|\r" type="delimited">
 <Field __artificialType="_id" __systemManaged="true" name="__id" type="string"/>
 <Field __index="0" __sourcePath="{}/skus/sku" containerType="SINGLE" label="sku" name="sku" type="string"/>
-<Field __sourcePath="{}/skus/customerId" containerType="SINGLE" label="customerId" name="customerId" type="integer"/>
 </Record>
 </Metadata>
 <Metadata __index="1" __referenceCounter="1" __schemaType="{http://www.alainn.com/SOA/model/1.0}transactedSkuType" __sourcePath="{http://www.alainn.com/SOA/model/1.0=ns1,http://www.alainn.com/SOA/message/1.0=ns0}/ns0:notifySKUItemMovement/ns1:TransactedSku" _dataStructure="SINGLE_DIMENSIONAL_COLLECTION" _id="__id" _metadataParentId="5ea3ff53-fd6d-4980-9b79-c4c00d4d72f9" _parent_id="__parent_id" _type="Input" id="cce71420-bcd9-45df-a93b-330137b95a09">
@@ -50,14 +49,7 @@
 </Dictionary>
 </Global>
 <Phase number="0">
-<Node enabled="enabled" guiName="Foreach 'ns0:notifySKUItemMovement' -&gt; 'skus'" guiX="460" guiY="20" id="FOREACH_NS0_NOTIFY_SKUITEM_MOVEMENT_SKUS" transformClass="com.mulesoft.datamapper.transform.MelRecordTransform" type="REFORMAT">
-<attr name="melScript"><![CDATA[//MEL
-//START -> DO NOT REMOVE
-output.__id = input.__id;
-//END -> DO NOT REMOVE
-]]></attr>
-</Node>
-<Node enabled="enabled" guiName="Foreach 'ns1:TransactedSku' -&gt; 'skus'" guiX="460" guiY="120" id="FOREACH_NS1_TRANSACTED_SKU_SKUS" transformClass="com.mulesoft.datamapper.transform.MelRecordTransform" type="REFORMAT">
+<Node enabled="enabled" guiName="Foreach 'ns1:TransactedSku' -&gt; 'skus'" guiX="460" guiY="20" id="FOREACH_NS1_TRANSACTED_SKU_SKUS" transformClass="com.mulesoft.datamapper.transform.MelRecordTransform" type="REFORMAT">
 <attr name="melScript"><![CDATA[//MEL
 //START -> DO NOT REMOVE
 output.__id = input.__id;
@@ -70,11 +62,6 @@ output.sku = input.sku;
 <clover:collection clover:name="skus" xmlns:clover="http://www.cloveretl.com/ns/xmlmapping">
   <item clover:inPort="0">
     <sku>$0.sku</sku>
-    <customerId>$0.customerId</customerId>
-  </item>
-  <item clover:inPort="1">
-    <sku>$1.sku</sku>
-    <customerId>$1.customerId</customerId>
   </item>
 </clover:collection>]]></attr>
 <attr name="_data_format"><![CDATA[MAP]]></attr>
@@ -82,27 +69,22 @@ output.sku = input.sku;
 <Node charset="UTF-8" enabled="enabled" fileURL="dict:inputPayload" guiName="XML READER" guiX="20" guiY="20" id="XML_READER0" type="XML_READER">
 <attr name="xmlSchemaURL"><![CDATA[./src/main/resources/service/SOA-Message-1.0.xsd]]></attr>
 <attr name="mapping"><![CDATA[<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<Context namespacePaths="ns0=&quot;http://www.alainn.com/SOA/message/1.0&quot;" outPort="0" sequenceField="__id" xpath="/ns0:notifySKUItemMovement">
-  <Mapping cloverField="CustomerId" namespacePaths="ns1=&quot;http://www.alainn.com/SOA/model/1.0&quot;" trim="true" xpath="ns1:CustomerId"/>
-  <Context generatedKey="__parent_id" namespacePaths="ns1=&quot;http://www.alainn.com/SOA/model/1.0&quot;" outPort="1" parentKey="__id" sequenceField="__id" xpath="ns1:TransactedSku">
-    <Mapping cloverField="id" trim="true" xpath="id"/>
-    <Mapping cloverField="type" trim="true" xpath="type"/>
-    <Mapping cloverField="name" trim="true" xpath="name"/>
-    <Mapping cloverField="summary" trim="true" xpath="summary"/>
-    <Mapping cloverField="brand" trim="true" xpath="brand"/>
-    <Mapping cloverField="sku" trim="true" xpath="sku"/>
-    <Mapping cloverField="price" trim="true" xpath="price"/>
-    <Mapping cloverField="quantityInStock" trim="true" xpath="quantityInStock"/>
-    <Mapping cloverField="transactionQuantity" trim="true" xpath="transactionQuantity"/>
-  </Context>
+<Context namespacePaths="ns0=&quot;http://www.alainn.com/SOA/message/1.0&quot;;ns1=&quot;http://www.alainn.com/SOA/model/1.0&quot;" outPort="0" sequenceField="__id" xpath="/ns0:notifySKUItemMovement/ns1:TransactedSku">
+  <Mapping cloverField="id" trim="true" xpath="id"/>
+  <Mapping cloverField="type" trim="true" xpath="type"/>
+  <Mapping cloverField="name" trim="true" xpath="name"/>
+  <Mapping cloverField="summary" trim="true" xpath="summary"/>
+  <Mapping cloverField="brand" trim="true" xpath="brand"/>
+  <Mapping cloverField="sku" trim="true" xpath="sku"/>
+  <Mapping cloverField="price" trim="true" xpath="price"/>
+  <Mapping cloverField="quantityInStock" trim="true" xpath="quantityInStock"/>
+  <Mapping cloverField="transactionQuantity" trim="true" xpath="transactionQuantity"/>
 </Context>
 ]]></attr>
 <attr name="_data_format"><![CDATA[XML]]></attr>
 <attr name="__rootGlobalElementName"><![CDATA[{http://www.alainn.com/SOA/message/1.0}notifySKUItemMovement]]></attr>
 </Node>
-<Edge debugMode="true" fromNode="FOREACH_NS0_NOTIFY_SKUITEM_MOVEMENT_SKUS:0" guiBendpoints="" id="Edge1" inPort="Port 0 (in)" metadata="7e69fa3d-93cf-4c9c-bc1a-833496773ed1" outPort="Port 0 (out)" toNode="MAP_WRITER0:0"/>
-<Edge debugMode="true" fromNode="FOREACH_NS1_TRANSACTED_SKU_SKUS:0" guiBendpoints="" id="Edge3" inPort="Port 1 (in)" metadata="7e69fa3d-93cf-4c9c-bc1a-833496773ed1" outPort="Port 0 (out)" toNode="MAP_WRITER0:1"/>
-<Edge debugMode="true" fromNode="XML_READER0:0" guiBendpoints="" id="Edge0" inPort="Port 0 (in)" metadata="5ea3ff53-fd6d-4980-9b79-c4c00d4d72f9" outPort="Port 0 (out)" toNode="FOREACH_NS0_NOTIFY_SKUITEM_MOVEMENT_SKUS:0"/>
-<Edge debugMode="true" fromNode="XML_READER0:1" guiBendpoints="" id="Edge2" inPort="Port 0 (in)" metadata="cce71420-bcd9-45df-a93b-330137b95a09" outPort="Port 1 (out)" toNode="FOREACH_NS1_TRANSACTED_SKU_SKUS:0"/>
+<Edge debugMode="true" fromNode="FOREACH_NS1_TRANSACTED_SKU_SKUS:0" guiBendpoints="" id="Edge1" inPort="Port 0 (in)" metadata="746b2427-f5b5-4d4d-9982-c2b737698755" outPort="Port 0 (out)" toNode="MAP_WRITER0:0"/>
+<Edge debugMode="true" fromNode="XML_READER0:0" guiBendpoints="" id="Edge0" inPort="Port 0 (in)" metadata="cce71420-bcd9-45df-a93b-330137b95a09" outPort="Port 0 (out)" toNode="FOREACH_NS1_TRANSACTED_SKU_SKUS:0"/>
 </Phase>
 </Graph>

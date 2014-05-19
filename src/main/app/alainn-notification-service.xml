@@ -2,6 +2,7 @@
 
 <mule xmlns:secure-property-placeholder="http://www.mulesoft.org/schema/mule/secure-property-placeholder"
 	xmlns:apple-push="http://www.mulesoft.org/schema/mule/apple-push"
+	xmlns:email="http://www.mulesoft.org/schema/mule/email"
 	xmlns:smtp="http://www.mulesoft.org/schema/mule/smtp" xmlns:twilio="http://www.mulesoft.org/schema/mule/twilio"
 	xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:db="http://www.mulesoft.org/schema/mule/db"
 	xmlns:mulexml="http://www.mulesoft.org/schema/mule/xml" xmlns:context="http://www.springframework.org/schema/context"
@@ -14,6 +15,7 @@
 	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.5.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/xml http://www.mulesoft.org/schema/mule/xml/current/mule-xml.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd
 http://www.mulesoft.org/schema/mule/https http://www.mulesoft.org/schema/mule/https/current/mule-https.xsd
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
@@ -49,19 +51,22 @@ http://www.mulesoft.org/schema/mule/secure-property-placeholder http://www.mules
 	</mulexml:namespace-manager>
 	<context:property-placeholder location="config.prod.properties" />
 
-	<db:mysql-config name="MySQL_Configuration" host="mule-demo-repository.cdumb7bgzajt.us-east-1.rds.amazonaws.com"
+	<db:mysql-config name="MySQL_Configuration"
+		host="mule-demo-repository.cdumb7bgzajt.us-east-1.rds.amazonaws.com"
 		port="3306" user="mule" password="Mule1379" database="alainn"
 		doc:name="MySQL Configuration" />
 	<apple-push:config name="Apple_Push_Notifications"
-		host="x" port="1234" keystore="x" keystorePassword="x"
+		host="gateway.sandbox.push.apple.com" port="2195" keystore="pushNotifications.p12" keystorePassword="muleftw!"
 		doc:name="Apple Push Notifications" />
 	<smtp:gmail-connector name="Gmail"
 		validateConnections="true" doc:name="Gmail" />
 
 	<data-mapper:config name="XML_To_Map"
 		transformationGraphPath="xml_to_map.grf" doc:name="XML_To_Map" />
-	<!-- <twilio:config name="Twilio" accountSid="ACba9752c4bd01de05c6415aaedc584ab2" 
-		authToken="107431ff9ce27725be66bc2e36965658" doc:name="Twilio"/> -->
+	<twilio:config name="Twilio" accountSid="ACba9752c4bd01de05c6415aaedc584ab2"
+		authToken="107431ff9ce27725be66bc2e36965658" doc:name="Twilio">
+		<twilio:http-callback-config></twilio:http-callback-config>
+	</twilio:config>
 
 	<flow name="NotificationserviceFlow1" doc:name="NotificationserviceFlow1">
 		<https:inbound-endpoint exchange-pattern="request-response"
@@ -79,7 +84,7 @@ http://www.mulesoft.org/schema/mule/secure-property-placeholder http://www.mules
 			value="#[xpath('fn:local-name(/*)')]" doc:name="opName" />
 		<choice doc:name="Choice">
 			<when expression="#[opName == 'notifySKUItemMovement']">
-                <flow-ref name="notify" doc:name="notify"/>
+				<flow-ref name="notify" doc:name="notify" />
 				<parse-template location="notifiySkuItemMovementResponse.xml"
 					doc:name="notifiySkuItemMovementResponse.xml" />
 			</when>
@@ -95,42 +100,51 @@ http://www.mulesoft.org/schema/mule/secure-property-placeholder http://www.mules
 		</catch-exception-strategy>
 
 	</flow>
-	
-	    <sub-flow name="notify" doc:name="notify">
-        <set-variable variableName="customerId" value="#[xpath:/mes:notifySKUItemMovement/mod:CustomerId]" doc:name="customerId"/>
-        <mulexml:dom-to-xml-transformer doc:name="DOM to XML"/>
-        <data-mapper:transform config-ref="XML_To_Map" doc:name="XML To Map"/>
-        <collection-splitter doc:name="Collection Splitter"/>
-        <db:select config-ref="MySQL_Configuration" doc:name="select customers whose wish matches sku and haven't received a notification in last 24 hrs">
-            <db:parameterized-query><![CDATA[select c.email, c.mobile, c.mobile_token, nt.notification_type_name, si.sku_name, w.id, nt.notification_type_id
-				from wish w, customer c, notification_preference np, notification_type nt, sku_item si
-				where w.active = true
-				and w.customer_id != #[customerId] 
-				and w.sku_item_id = #[payload.sku] 
-				and w.customer_id = c.id
-				and c.id = np.customer_id
-				and np.notification_type_id = nt.notification_type_id
-				and w.sku_item_id = si.sku_id
-				and not w.id in
-					(select n.wish_id from notification n, wish w, sku_item si
-					where n.wish_id = w.id
-					and w.sku_item_id = si.sku_id
+
+	<sub-flow name="notify" doc:name="notify">
+		<set-variable variableName="customerId"
+			value="#[xpath:/mes:notifySKUItemMovement/mod:CustomerId]" doc:name="customerId" />
+		<mulexml:dom-to-xml-transformer
+			doc:name="DOM to XML" />
+		<data-mapper:transform config-ref="XML_To_Map"
+			doc:name="XML To Map" />
+		<collection-splitter doc:name="Collection Splitter" />
+		<db:select config-ref="MySQL_Configuration"
+			doc:name="select customers whose wish matches sku but haven't received a notification in last 24 hrs">
+            <db:parameterized-query><![CDATA[
+	            select mt.token, c.first_name, c.email, c.mobile, nt.notification_type_name, si.sku_name, w.id, nt.notification_type_id
+					from wish w, customer c, notification_preference np, notification_type nt, sku_item si, mobile_token mt
+					where w.active = true
 					and w.customer_id != #[customerId]
-					and datediff(n.date, curdate()) <= 1)]]></db:parameterized-query>
-        </db:select>
-        <expression-filter expression="#[ payload.size() &gt; 0]" doc:name="not empty"/>
-        <foreach doc:name="For Each Record in ResultSet">
-            <vm:outbound-endpoint exchange-pattern="one-way" path="#[payload.notification_type_name]" doc:name="email | sms | web | apple-push"/>
-        </foreach>
-        <db:insert config-ref="MySQL_Configuration" bulkMode="true" doc:name="Bulk insert notification">
-            <db:parameterized-query><![CDATA[insert into notification(wish_id, notification_type_id) values(#[payload.id], #[payload.notification_type_id])]]></db:parameterized-query>
-        </db:insert>
-    </sub-flow>
-    
+					and w.sku_item_id = #[payload.sku]
+					and w.customer_id = c.id
+					and c.id = np.customer_id
+					and c.id = mt.customer_id
+					and np.notification_type_id = nt.notification_type_id
+					and w.sku_item_id = si.sku_id
+					and not w.id in
+						(select n.wish_id from notification n, wish w, sku_item si
+						where n.wish_id = w.id
+						and w.sku_item_id = si.sku_id
+						and w.customer_id != #[customerId]
+						and datediff(n.date, curdate()) <= 1)
+			]]></db:parameterized-query>
+		</db:select>
+		<expression-filter expression="#[ payload.size() &gt; 0]"
+			doc:name="not empty" />
+		<foreach doc:name="For Each Record in ResultSet">
+			<vm:outbound-endpoint exchange-pattern="one-way"
+				path="#[payload.notification_type_name]" doc:name="email | sms | web | apple-push" />
+		</foreach>
+		<db:insert config-ref="MySQL_Configuration" bulkMode="true"
+			doc:name="Bulk insert notification">
+			<db:parameterized-query><![CDATA[insert into notification(wish_id, notification_type_id) values(#[payload.id], #[payload.notification_type_id])]]></db:parameterized-query>
+		</db:insert>
+	</sub-flow>
+
 	<flow name="mobile-push" doc:name="mobile-push">
 		<vm:inbound-endpoint exchange-pattern="one-way"
 			path="apple-push" doc:name="apple-push" />
-		<logger level="INFO" doc:name="apple here" />
 		<apple-push:send deviceToken="#[payload.mobile_token]"
 			alert="Hello #[payload.first_name]. Your Wish-list item, #[payload.sku_name], is in high demand. Better hurry up if you want to grab one before we run out! :)"
 			sound="default" config-ref="Apple_Push_Notifications" doc:name="Apple Push Notification">
@@ -145,13 +159,22 @@ http://www.mulesoft.org/schema/mule/secure-property-placeholder http://www.mules
 	<flow name="email" doc:name="email">
 		<vm:inbound-endpoint exchange-pattern="one-way"
 			path="email" doc:name="email" />
-        <set-variable variableName="config" value="#[payload]" doc:name="config"/>
-        <parse-template location="Email.html" doc:name="Email.html"/>
+		<set-variable variableName="config" value="#[payload]"
+			doc:name="config" />
+		<parse-template location="Email.html" doc:name="Email.html" />
+		<set-property propertyName="contentType" value="text/html" doc:name="Property"/>
 		<smtp:outbound-endpoint host="smtp.gmail.com"
 			responseTimeout="10000" doc:name="Email notification" connector-ref="Gmail"
 			from="notifications@alainn-cosmetics.com" password="Mule1379"
-			subject="Your wish list item is running out of stock" to="#[config.email]" 
-			user="muleworkshop1" replyTo="notifications@alainn-cosmetics.com" mimeType="text/html" />
+			subject="Your wish list item is running out of stock" to="#[config.email]"
+			user="muleworkshop1" replyTo="notifications@alainn-cosmetics.com"
+			mimeType="text/html">
+			<email:string-to-email-transformer />
+			<properties>
+				<spring:entry key="mail.smtp.auth" value="true" />
+				<spring:entry key="mail.smtp.ssl.enable" value="true" />
+			</properties>
+		</smtp:outbound-endpoint>
 	</flow>
 	<flow name="alainn-notification-serviceFlow1" doc:name="alainn-notification-serviceFlow1">
 		<http:inbound-endpoint exchange-pattern="request-response"
@@ -160,6 +183,7 @@ http://www.mulesoft.org/schema/mule/secure-property-placeholder http://www.mules
 			expression="
         	[ 'first_name' : 'Nial', 'sku_name' : 'Soap', 'mobile' : '+5491169834192', 'email' : 'nial.darbey@mulesoft.com', 'body' : 'Hi Nial']
         " />
+        <data-mapper:transform doc:name="DataMapper"/>
 		<vm:outbound-endpoint exchange-pattern="one-way"
 			path="email" doc:name="email" />
 
@@ -169,10 +193,12 @@ http://www.mulesoft.org/schema/mule/secure-property-placeholder http://www.mules
 		<vm:inbound-endpoint exchange-pattern="one-way"
 			path="sms" doc:name="sms" />
 		<logger level="INFO" doc:name="Logger" />
-		<!-- <twilio:send-sms-message config-ref="Twilio" body="Hello #[payload.first_name]. 
+		<twilio:send-sms-message config-ref="Twilio"
+			body="Hello #[payload.first_name]. 
 			Your Wish-list item, #[payload.sku_name], is in high demand. Better hurry 
-			up if you want to grab one before we run out! :)" from="+5491169834192" to="#[payload.mobile]" 
-			doc:name="SMS Notification" /> -->
+			up if you want to grab one before we run out! :)"
+			from="+5491169834192" to="#[payload.mobile]" doc:name="SMS Notification" />
+
 	</flow>
 
 

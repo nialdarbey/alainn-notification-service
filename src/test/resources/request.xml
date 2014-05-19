@@ -2,8 +2,8 @@
          <ns1:CustomerId>61</ns1:CustomerId>
          <!--1 or more repetitions:-->
          <ns1:TransactedSku>
-            <id>B0044B4KTI</id>
-            <sku>B0044B4KTI</sku>
+            <id>B000OQ5424</id>
+            <sku>B000OQ5424</sku>
             <transactionQuantity>23</transactionQuantity>
          </ns1:TransactedSku>
          <ns1:TransactedSku>
