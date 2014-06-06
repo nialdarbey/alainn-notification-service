@@ -43,29 +43,31 @@
 		&lt;mulexml:namespace prefix=&quot;mod&quot; uri=&quot;http://www.alainn.com/SOA/model/1.0&quot;/&gt;
 	&lt;/mulexml:namespace-manager&gt;</content>
     </global-unknown>
-    <global-element name="Property Placeholder" type="http://www.springframework.org/schema/context/property-placeholder" entity-id="Property Placeholder#1">
+    <global-element name="Secure Property Placeholder" type="http://www.mulesoft.org/schema/mule/secure-property-placeholder/config" entity-id="Secure Property Placeholder#1">
         <properties>
-            <property name="properties-ref"/>
+            <property name="ignoreResourceNotFound"/>
+            <property name="encryptionMode"/>
             <property name="order"/>
-            <property name="location" value="config.prod.properties"/>
-            <property name="local-override"/>
-            <property name="system-properties-mode"/>
-            <property name="file-encoding"/>
+            <property name="location" value="config.${env}.properties"/>
+            <property name="ignoreUnresolvablePlaceholders"/>
+            <property name="name" value="Secure_Property_Placeholder"/>
+            <property name="fileEncoding"/>
+            <property name="encryptionAlgorithm"/>
             <property name="auxiliary;index" value="7"/>
-            <property name="ignore-unresolvable"/>
-            <property name="ignore-resource-not-found"/>
+            <property name="systemPropertiesMode"/>
+            <property name="key" value="${props.key}"/>
         </properties>
     </global-element>
     <global-element name="MySQL Configuration" type="http://www.mulesoft.org/schema/mule/db/mysql-config" entity-id="MySQL Configuration#1">
         <properties>
             <property name="port" value="3306"/>
-            <property name="host" value="mule-demo-repository.cdumb7bgzajt.us-east-1.rds.amazonaws.com"/>
-            <property name="auxiliary;metauseMetaData" value="true"/>
+            <property name="host" value="${db.host}"/>
+            <property name="auxiliary;metauseMetaData"/>
             <property name="driverClassName"/>
             <property name="parameterTable"/>
             <property name="transactionIsolation"/>
-            <property name="password" value="Mule1379"/>
-            <property name="database" value="alainn"/>
+            <property name="password" value="${db.password}"/>
+            <property name="database" value="${db.database}"/>
             <property name="url"/>
             <property name="connectionTimeout"/>
             <property name="dataSource-ref"/>
@@ -74,17 +76,17 @@
             <property name="springBeanConf"/>
             <property name="useXaTransactions"/>
             <property name="databaseURLConf"/>
-            <property name="user" value="mule"/>
+            <property name="user" value="${db.user}"/>
             <property name="auxiliary;index" value="8"/>
         </properties>
     </global-element>
     <global-element name="Apple Push Notifications" type="http://www.mulesoft.org/schema/mule/apple-push/config" entity-id="Apple Push Notifications#1">
         <properties>
             <property name="port" value="2195"/>
-            <property name="host" value="gateway.sandbox.push.apple.com"/>
-            <property name="keystore" value="pushNotifications.p12"/>
+            <property name="host" value="gateway.push.apple.com"/>
+            <property name="keystore" value="pushNotificationsProd.p12"/>
             <property name="name" value="Apple_Push_Notifications"/>
-            <property name="keystorePassword" value="muleftw!"/>
+            <property name="keystorePassword" value="${apple.keystore.passsword}"/>
             <property name="auxiliary;index" value="9"/>
         </properties>
     </global-element>
@@ -112,13 +114,13 @@
     </global-element>
     <global-element name="Twilio" type="http://www.mulesoft.org/schema/mule/twilio/config" entity-id="Twilio#1">
         <properties>
-            <property name="accountSid" value="ACba9752c4bd01de05c6415aaedc584ab2"/>
+            <property name="accountSid" value="${twilio.account.sid}"/>
             <property name="name" value="Twilio"/>
-            <property name="authToken" value="107431ff9ce27725be66bc2e36965658"/>
+            <property name="authToken" value="${twilio.auth.token}"/>
             <property name="auxiliary;index" value="12"/>
         </properties>
     </global-element>
-    <flow SubFlow="false" name="NotificationserviceFlow1" type="http://www.mulesoft.org/schema/mule/core/flow" entity-id="8cf482cf-2958-4123-a9a9-b92829a7e396">
+    <flow SubFlow="false" name="NotificationserviceFlow1" type="http://www.mulesoft.org/schema/mule/core/flow" entity-id="aec119be-4c16-4ed5-997d-4cd815372d07">
         <properties>
             <property name="initialState"/>
             <property name="processingStrategy2"/>
@@ -200,20 +202,20 @@
             <splitter index="20" name="Choice" type="org.mule.tooling.ui.modules.core.pattern.cbr" entity-id="Choice#1">
                 <graphicalData x="0" y="0" width="0" height="0"/>
                 <properties>
-                    <property-collection name="27a96b8d-47ab-4c37-be9f-ce5179094489">
+                    <property-collection name="37a56e40-3dc2-4914-aad2-a370079d0d04">
                         <property name="choice.expression" value="#[opName == 'notifySKUItemMovement']"/>
                         <property-collection name="choice.attributes">
                             <property name="expression" value="#[opName == 'notifySKUItemMovement']"/>
                         </property-collection>
                     </property-collection>
-                    <property-collection name="c13092c5-093b-40f9-b3a9-72a410cd73a5">
+                    <property-collection name="486b3b57-0a74-4289-9646-30797bdba79a">
                         <property name="choice.otherwise" value="true"/>
                         <property-collection name="choice.attributes"/>
                     </property-collection>
                 </properties>
                 <pattern name="Choice" type="org.mule.tooling.ui.modules.core.pattern.cbr" entity-id="Choice#2"/>
                 <compartment entity-id="compartment#1">
-                    <lane hadOnlyOneElement="false" index="22" isChoiceOtherwiseLane="false" entity-id="27a96b8d-47ab-4c37-be9f-ce5179094489">
+                    <lane hadOnlyOneElement="false" index="22" isChoiceOtherwiseLane="false" entity-id="37a56e40-3dc2-4914-aad2-a370079d0d04">
                         <pattern name="notify" type="http://www.mulesoft.org/schema/mule/core/flow-ref" entity-id="Flow Reference#1">
                             <graphicalData x="0" y="0" width="0" height="0"/>
                             <properties>
@@ -229,7 +231,7 @@
                             </properties>
                         </pattern>
                     </lane>
-                    <lane hadOnlyOneElement="false" index="25" isChoiceOtherwiseLane="true" entity-id="c13092c5-093b-40f9-b3a9-72a410cd73a5">
+                    <lane hadOnlyOneElement="false" index="25" isChoiceOtherwiseLane="true" entity-id="486b3b57-0a74-4289-9646-30797bdba79a">
                         <pattern name="Exception" type="http://www.mulesoft.org/schema/mule/scripting/groovyComponent" entity-id="Groovy#1">
                             <graphicalData x="0" y="0" width="0" height="0"/>
                             <properties>
@@ -275,7 +277,7 @@
             </scope>
         </lane>
     </flow>
-    <flow SubFlow="true" name="notify" type="http://www.mulesoft.org/schema/mule/core/subflow" entity-id="ddcc7f2d-d4d7-4f48-af05-da71fec83c8e">
+    <flow SubFlow="true" name="notify" type="http://www.mulesoft.org/schema/mule/core/subflow" entity-id="6aa5b509-023b-4450-b47c-cd182413ff21">
         <properties>
             <property name="initialState"/>
             <property name="processingStrategy2"/>
@@ -342,7 +344,7 @@
                     <property name="config-ref" value="MySQL_Configuration"/>
                     <property name="auxiliary;index" value="34"/>
                     <property-collection name="@http://www.mulesoft.org/schema/mule/db/parameterized-query;0">
-                        <property name="text" value="&#xA;&#x9;            select mt.token, c.first_name, c.email, c.mobile, nt.notification_type_name, si.sku_name, w.id, nt.notification_type_id&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;from wish w, customer c, notification_preference np, notification_type nt, sku_item si, mobile_token mt&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;where w.active = true&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;and w.customer_id != #[customerId]&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;and w.sku_item_id = #[payload.sku]&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;and w.customer_id = c.id&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;and c.id = np.customer_id&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;and c.id = mt.customer_id&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;and np.notification_type_id = nt.notification_type_id&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;and w.sku_item_id = si.sku_id&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;and not w.id in&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;(select n.wish_id from notification n, wish w, sku_item si&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;where n.wish_id = w.id&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;and w.sku_item_id = si.sku_id&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;and w.customer_id != #[customerId]&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;and datediff(n.date, curdate()) &lt;= 1)&#xA;&#x9;&#x9;&#x9;"/>
+                        <property name="text" value="select mt.token, c.first_name, c.email, c.mobile, nt.notification_type_id, nt.notification_type_name, si.sku_name, w.id&#xA;&#x9;&#x9;&#x9;&#x9;from wish w, customer c, notification_preference np, notification_type nt, sku_item si, mobile_token mt&#xA;&#x9;&#x9;&#x9;&#x9;where w.active = true&#xA;&#x9;&#x9;&#x9;&#x9;and w.customer_id != #[customerId]&#xA;&#x9;&#x9;&#x9;&#x9;and w.sku_item_id = #[payload.sku]&#xA;&#x9;&#x9;&#x9;&#x9;and w.customer_id = c.id&#xA;&#x9;&#x9;&#x9;&#x9;and c.id = np.customer_id&#xA;&#x9;&#x9;&#x9;&#x9;and c.id = mt.customer_id&#xA;&#x9;&#x9;&#x9;&#x9;and w.sku_item_id = si.sku_id&#xA;&#x9;&#x9;&#x9;&#x9;and np.notification_type_id = nt.notification_type_id&#xA;&#x9;&#x9;&#x9;&#x9;and not w.id in&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;(select n.wish_id from notification n, wish w, sku_item si&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;where n.wish_id = w.id&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;and w.sku_item_id = si.sku_id&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;and w.customer_id != #[customerId]&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;and datediff(n.date, curdate()) &lt;= 1)"/>
                         <property name="auxiliary;index" value="35"/>
                         <property name="auxiliary;wrapIn" value="35"/>
                     </property-collection>
@@ -414,7 +416,7 @@
             </pattern>
         </lane>
     </flow>
-    <flow SubFlow="false" name="mobile-push" type="http://www.mulesoft.org/schema/mule/core/flow" entity-id="2f35c5c8-e36f-4b3b-b97e-06da58d1dc98">
+    <flow SubFlow="false" name="sms" type="http://www.mulesoft.org/schema/mule/core/flow" entity-id="61d87d24-e768-46c5-9afd-85b8f0a25e1c">
         <properties>
             <property name="initialState"/>
             <property name="processingStrategy2"/>
@@ -425,7 +427,62 @@
         </properties>
         <lane hadOnlyOneElement="false" index="0" isChoiceOtherwiseLane="false" entity-id="compartment-lane#5">
             <graphicalData x="0" y="0" width="0" height="0"/>
-            <endpoint direction="Inbound" name="apple-push" type="http://www.mulesoft.org/schema/mule/vm/endpoint" entity-id="VM#2">
+            <endpoint direction="Inbound" name="sms" type="http://www.mulesoft.org/schema/mule/vm/endpoint" entity-id="VM#2">
+                <graphicalData x="0" y="0" width="0" height="0"/>
+                <properties>
+                    <property name="businessEventsLabel"/>
+                    <property name="disableTransportTransformer"/>
+                    <property name="exchange-pattern" value="one-way"/>
+                    <property name="tracking:enable-default-events"/>
+                    <property name="ref"/>
+                    <property name="transformer-refs"/>
+                    <property name="address"/>
+                    <property name="path" value="sms"/>
+                    <property name="encoding"/>
+                    <property name="responseTransformer-refs"/>
+                    <property name="auxiliary;index" value="42"/>
+                    <property name="responseTimeout"/>
+                    <property name="mimeType"/>
+                    <property name="connector-ref"/>
+                </properties>
+            </endpoint>
+            <pattern name="Logger" type="http://www.mulesoft.org/schema/mule/core/logger" entity-id="Logger#2">
+                <graphicalData x="0" y="0" width="0" height="0"/>
+                <properties>
+                    <property name="message"/>
+                    <property name="category"/>
+                    <property name="level" value="INFO"/>
+                    <property name="auxiliary;index" value="43"/>
+                </properties>
+            </pattern>
+            <pattern name="SMS Notification" type="http://www.mulesoft.org/schema/mule/twilio/twilio-connector" entity-id="Twilio#2">
+                <graphicalData x="0" y="0" width="0" height="0"/>
+                <properties>
+                    <property name="to" value="#[payload.mobile]"/>
+                    <property name="body" value="Hello #[payload.first_name]. &#xA;&#x9;&#x9;&#x9;Your Wish-list item, #[payload.sku_name], is in high demand. Better hurry &#xA;&#x9;&#x9;&#x9;up if you want to grab one before we run out! :)"/>
+                    <property name="accountSid"/>
+                    <property name="applicationSid"/>
+                    <property name="org.mule.tooling.ui.modules.core.widgets.meta.ModeAttribute" value="http://www.mulesoft.org/schema/mule/twilio/send-sms-message"/>
+                    <property name="status-callback-flow-ref"/>
+                    <property name="from" value="+5491169834192"/>
+                    <property name="config-ref" value="Twilio"/>
+                    <property name="auxiliary;index" value="44"/>
+                </properties>
+            </pattern>
+        </lane>
+    </flow>
+    <flow SubFlow="false" name="mobile-push" type="http://www.mulesoft.org/schema/mule/core/flow" entity-id="8f84b6ca-d3f1-4d13-bb2c-b4ea9fff90ec">
+        <properties>
+            <property name="initialState"/>
+            <property name="processingStrategy2"/>
+            <property name="processingStrategy"/>
+            <property name="bussinessEventsLabel"/>
+            <property name="tracking:enable-default-events"/>
+            <property name="auxiliary;index" value="45"/>
+        </properties>
+        <lane hadOnlyOneElement="false" index="0" isChoiceOtherwiseLane="false" entity-id="compartment-lane#6">
+            <graphicalData x="0" y="0" width="0" height="0"/>
+            <endpoint direction="Inbound" name="apple-push" type="http://www.mulesoft.org/schema/mule/vm/endpoint" entity-id="VM#3">
                 <graphicalData x="0" y="0" width="0" height="0"/>
                 <properties>
                     <property name="businessEventsLabel"/>
@@ -438,7 +495,7 @@
                     <property name="path" value="apple-push"/>
                     <property name="encoding"/>
                     <property name="responseTransformer-refs"/>
-                    <property name="auxiliary;index" value="42"/>
+                    <property name="auxiliary;index" value="46"/>
                     <property name="responseTimeout"/>
                     <property name="mimeType"/>
                     <property name="connector-ref"/>
@@ -448,28 +505,113 @@
                 <graphicalData x="0" y="0" width="0" height="0"/>
                 <properties>
                     <property name="sound" value="default"/>
-                    <property name="deviceToken" value="#[payload.mobile_token]"/>
+                    <property name="deviceToken" value="#[payload.token]"/>
                     <property name="alert" value="Hello #[payload.first_name]. Your Wish-list item, #[payload.sku_name], is in high demand. Better hurry up if you want to grab one before we run out! :)"/>
                     <property name="org.mule.tooling.ui.modules.core.widgets.meta.ModeAttribute" value="http://www.mulesoft.org/schema/mule/apple-push/send"/>
                     <property name="badge"/>
                     <property name="config-ref" value="Apple_Push_Notifications"/>
-                    <property name="auxiliary;index" value="43"/>
+                    <property name="auxiliary;index" value="47"/>
                 </properties>
             </pattern>
         </lane>
     </flow>
-    <flow SubFlow="false" name="web" type="http://www.mulesoft.org/schema/mule/core/flow" entity-id="e57df4e3-54e7-4cc8-9e07-0147dcc8def3">
+    <flow SubFlow="false" name="email" type="http://www.mulesoft.org/schema/mule/core/flow" entity-id="1a185a0a-35c8-4873-9e2c-07228cdc2f6e">
         <properties>
             <property name="initialState"/>
             <property name="processingStrategy2"/>
             <property name="processingStrategy"/>
             <property name="bussinessEventsLabel"/>
             <property name="tracking:enable-default-events"/>
-            <property name="auxiliary;index" value="44"/>
+            <property name="auxiliary;index" value="48"/>
         </properties>
-        <lane hadOnlyOneElement="false" index="0" isChoiceOtherwiseLane="false" entity-id="compartment-lane#6">
+        <lane hadOnlyOneElement="false" index="0" isChoiceOtherwiseLane="false" entity-id="compartment-lane#7">
             <graphicalData x="0" y="0" width="0" height="0"/>
-            <endpoint direction="Inbound" name="web" type="http://www.mulesoft.org/schema/mule/vm/endpoint" entity-id="VM#3">
+            <endpoint direction="Inbound" name="email" type="http://www.mulesoft.org/schema/mule/vm/endpoint" entity-id="VM#4">
+                <graphicalData x="0" y="0" width="0" height="0"/>
+                <properties>
+                    <property name="businessEventsLabel"/>
+                    <property name="disableTransportTransformer"/>
+                    <property name="exchange-pattern" value="one-way"/>
+                    <property name="tracking:enable-default-events"/>
+                    <property name="ref"/>
+                    <property name="transformer-refs"/>
+                    <property name="address"/>
+                    <property name="path" value="email"/>
+                    <property name="encoding"/>
+                    <property name="responseTransformer-refs"/>
+                    <property name="auxiliary;index" value="49"/>
+                    <property name="responseTimeout"/>
+                    <property name="mimeType"/>
+                    <property name="connector-ref"/>
+                </properties>
+            </endpoint>
+            <pattern name="config" type="http://www.mulesoft.org/schema/mule/core/variable-transformer" entity-id="Variable#3">
+                <graphicalData x="0" y="0" width="0" height="0"/>
+                <properties>
+                    <property name="variableName" value="config"/>
+                    <property name="value" value="#[payload]"/>
+                    <property name="org.mule.tooling.ui.modules.core.widgets.meta.ModeAttribute" value="http://www.mulesoft.org/schema/mule/core/set-variable"/>
+                    <property name="auxiliary;index" value="50"/>
+                </properties>
+            </pattern>
+            <pattern name="Email.html" type="http://www.mulesoft.org/schema/mule/core/parse-template" entity-id="Parse Template#2">
+                <graphicalData x="0" y="0" width="0" height="0"/>
+                <properties>
+                    <property name="location" value="Email.html"/>
+                    <property name="auxiliary;index" value="51"/>
+                </properties>
+            </pattern>
+            <pattern name="Property" type="http://www.mulesoft.org/schema/mule/core/properties-transformer" entity-id="Property#1">
+                <graphicalData x="0" y="0" width="0" height="0"/>
+                <properties>
+                    <property name="propertyName" value="contentType"/>
+                    <property name="value" value="text/html"/>
+                    <property name="org.mule.tooling.ui.modules.core.widgets.meta.ModeAttribute" value="http://www.mulesoft.org/schema/mule/core/set-property"/>
+                    <property name="auxiliary;index" value="52"/>
+                </properties>
+            </pattern>
+            <endpoint direction="Outbound" name="Email notification" type="http://www.mulesoft.org/schema/mule/smtps/endpoint" entity-id="SMTP#1">
+                <graphicalData x="0" y="0" width="0" height="0"/>
+                <properties>
+                    <property name="port"/>
+                    <property name="to" value="#[config.email]"/>
+                    <property name="host" value="smtp.gmail.com"/>
+                    <property name="businessEventsLabel"/>
+                    <property name="subject" value="Your wish list item is running out of stock"/>
+                    <property name="org.mule.tooling.ui.modules.core.widgets.meta.ModeAttribute" value="http://www.mulesoft.org/schema/mule/smtp/endpoint"/>
+                    <property name="bcc"/>
+                    <property name="from" value="notifications@alainn-cosmetics.com"/>
+                    <property name="disableTransportTransformer"/>
+                    <property name="password" value="Mule1379"/>
+                    <property name="tracking:enable-default-events"/>
+                    <property name="exchange-pattern" value="one-way"/>
+                    <property name="ref"/>
+                    <property name="transformer-refs"/>
+                    <property name="replyTo" value="notifications@alainn-cosmetics.com"/>
+                    <property name="address"/>
+                    <property name="encoding"/>
+                    <property name="user" value="muleworkshop1"/>
+                    <property name="auxiliary;index" value="53"/>
+                    <property name="mimeType" value="text/html"/>
+                    <property name="responseTimeout" value="10000"/>
+                    <property name="cc"/>
+                    <property name="connector-ref" value="Gmail"/>
+                </properties>
+            </endpoint>
+        </lane>
+    </flow>
+    <flow SubFlow="false" name="web" type="http://www.mulesoft.org/schema/mule/core/flow" entity-id="668510c6-e5aa-4e27-a513-d665566bb1c0">
+        <properties>
+            <property name="initialState"/>
+            <property name="processingStrategy2"/>
+            <property name="processingStrategy"/>
+            <property name="bussinessEventsLabel"/>
+            <property name="tracking:enable-default-events"/>
+            <property name="auxiliary;index" value="58"/>
+        </properties>
+        <lane hadOnlyOneElement="false" index="0" isChoiceOtherwiseLane="false" entity-id="compartment-lane#8">
+            <graphicalData x="0" y="0" width="0" height="0"/>
+            <endpoint direction="Inbound" name="web" type="http://www.mulesoft.org/schema/mule/vm/endpoint" entity-id="VM#5">
                 <graphicalData x="0" y="0" width="0" height="0"/>
                 <properties>
                     <property name="businessEventsLabel"/>
@@ -482,7 +624,7 @@
                     <property name="path" value="web"/>
                     <property name="encoding"/>
                     <property name="responseTransformer-refs"/>
-                    <property name="auxiliary;index" value="45"/>
+                    <property name="auxiliary;index" value="59"/>
                     <property name="responseTimeout"/>
                     <property name="mimeType"/>
                     <property name="connector-ref"/>
@@ -511,7 +653,7 @@
                     <property name="responseTransformer-refs"/>
                     <property name="method" value="POST"/>
                     <property name="user"/>
-                    <property name="auxiliary;index" value="46"/>
+                    <property name="auxiliary;index" value="60"/>
                     <property name="responseTimeout"/>
                     <property name="mimeType"/>
                     <property name="connector-ref"/>
@@ -519,101 +661,16 @@
             </endpoint>
         </lane>
     </flow>
-    <flow SubFlow="false" name="email" type="http://www.mulesoft.org/schema/mule/core/flow" entity-id="7bdaf90a-a251-41ba-ad77-b64776084636">
+    <flow SubFlow="false" name="alainn-notification-serviceFlow1" type="http://www.mulesoft.org/schema/mule/core/flow" entity-id="ff80c31c-f357-4445-a162-34e29cd7099a">
         <properties>
             <property name="initialState"/>
             <property name="processingStrategy2"/>
             <property name="processingStrategy"/>
             <property name="bussinessEventsLabel"/>
             <property name="tracking:enable-default-events"/>
-            <property name="auxiliary;index" value="47"/>
+            <property name="auxiliary;index" value="61"/>
         </properties>
-        <lane hadOnlyOneElement="false" index="0" isChoiceOtherwiseLane="false" entity-id="compartment-lane#7">
-            <graphicalData x="0" y="0" width="0" height="0"/>
-            <endpoint direction="Inbound" name="email" type="http://www.mulesoft.org/schema/mule/vm/endpoint" entity-id="VM#4">
-                <graphicalData x="0" y="0" width="0" height="0"/>
-                <properties>
-                    <property name="businessEventsLabel"/>
-                    <property name="disableTransportTransformer"/>
-                    <property name="exchange-pattern" value="one-way"/>
-                    <property name="tracking:enable-default-events"/>
-                    <property name="ref"/>
-                    <property name="transformer-refs"/>
-                    <property name="address"/>
-                    <property name="path" value="email"/>
-                    <property name="encoding"/>
-                    <property name="responseTransformer-refs"/>
-                    <property name="auxiliary;index" value="48"/>
-                    <property name="responseTimeout"/>
-                    <property name="mimeType"/>
-                    <property name="connector-ref"/>
-                </properties>
-            </endpoint>
-            <pattern name="config" type="http://www.mulesoft.org/schema/mule/core/variable-transformer" entity-id="Variable#3">
-                <graphicalData x="0" y="0" width="0" height="0"/>
-                <properties>
-                    <property name="variableName" value="config"/>
-                    <property name="value" value="#[payload]"/>
-                    <property name="org.mule.tooling.ui.modules.core.widgets.meta.ModeAttribute" value="http://www.mulesoft.org/schema/mule/core/set-variable"/>
-                    <property name="auxiliary;index" value="49"/>
-                </properties>
-            </pattern>
-            <pattern name="Email.html" type="http://www.mulesoft.org/schema/mule/core/parse-template" entity-id="Parse Template#2">
-                <graphicalData x="0" y="0" width="0" height="0"/>
-                <properties>
-                    <property name="location" value="Email.html"/>
-                    <property name="auxiliary;index" value="50"/>
-                </properties>
-            </pattern>
-            <pattern name="Property" type="http://www.mulesoft.org/schema/mule/core/properties-transformer" entity-id="Property#1">
-                <graphicalData x="0" y="0" width="0" height="0"/>
-                <properties>
-                    <property name="propertyName" value="contentType"/>
-                    <property name="value" value="text/html"/>
-                    <property name="org.mule.tooling.ui.modules.core.widgets.meta.ModeAttribute" value="http://www.mulesoft.org/schema/mule/core/set-property"/>
-                    <property name="auxiliary;index" value="51"/>
-                </properties>
-            </pattern>
-            <endpoint direction="Outbound" name="Email notification" type="http://www.mulesoft.org/schema/mule/smtps/endpoint" entity-id="SMTP#1">
-                <graphicalData x="0" y="0" width="0" height="0"/>
-                <properties>
-                    <property name="port"/>
-                    <property name="to" value="#[config.email]"/>
-                    <property name="host" value="smtp.gmail.com"/>
-                    <property name="businessEventsLabel"/>
-                    <property name="subject" value="Your wish list item is running out of stock"/>
-                    <property name="org.mule.tooling.ui.modules.core.widgets.meta.ModeAttribute" value="http://www.mulesoft.org/schema/mule/smtp/endpoint"/>
-                    <property name="bcc"/>
-                    <property name="from" value="notifications@alainn-cosmetics.com"/>
-                    <property name="disableTransportTransformer"/>
-                    <property name="password" value="Mule1379"/>
-                    <property name="tracking:enable-default-events"/>
-                    <property name="exchange-pattern" value="one-way"/>
-                    <property name="ref"/>
-                    <property name="transformer-refs"/>
-                    <property name="replyTo" value="notifications@alainn-cosmetics.com"/>
-                    <property name="address"/>
-                    <property name="encoding"/>
-                    <property name="user" value="muleworkshop1"/>
-                    <property name="auxiliary;index" value="52"/>
-                    <property name="mimeType" value="text/html"/>
-                    <property name="responseTimeout" value="10000"/>
-                    <property name="cc"/>
-                    <property name="connector-ref" value="Gmail"/>
-                </properties>
-            </endpoint>
-        </lane>
-    </flow>
-    <flow SubFlow="false" name="alainn-notification-serviceFlow1" type="http://www.mulesoft.org/schema/mule/core/flow" entity-id="d76d399c-62d6-42f9-ac8b-7b87cefe869f">
-        <properties>
-            <property name="initialState"/>
-            <property name="processingStrategy2"/>
-            <property name="processingStrategy"/>
-            <property name="bussinessEventsLabel"/>
-            <property name="tracking:enable-default-events"/>
-            <property name="auxiliary;index" value="57"/>
-        </properties>
-        <lane hadOnlyOneElement="false" index="0" isChoiceOtherwiseLane="false" entity-id="compartment-lane#8">
+        <lane hadOnlyOneElement="false" index="0" isChoiceOtherwiseLane="false" entity-id="compartment-lane#9">
             <graphicalData x="0" y="0" width="0" height="0"/>
             <endpoint direction="Inbound" name="HTTP" type="http://www.mulesoft.org/schema/mule/http/endpoint" entity-id="HTTP#3">
                 <graphicalData x="0" y="0" width="0" height="0"/>
@@ -638,7 +695,7 @@
                     <property name="responseTransformer-refs"/>
                     <property name="method"/>
                     <property name="user"/>
-                    <property name="auxiliary;index" value="58"/>
+                    <property name="auxiliary;index" value="62"/>
                     <property name="responseTimeout"/>
                     <property name="mimeType"/>
                     <property name="connector-ref"/>
@@ -655,7 +712,7 @@
                     <property name="custom-evaluator"/>
                     <property name="encoding"/>
                     <property name="evaluator"/>
-                    <property name="auxiliary;index" value="59"/>
+                    <property name="auxiliary;index" value="63"/>
                     <property name="mimeType"/>
                 </properties>
             </pattern>
@@ -669,10 +726,10 @@
                     <property name="org.mule.tooling.ui.modules.core.widgets.meta.ModeAttribute" value="http://www.mulesoft.org/schema/mule/ee/data-mapper/transform"/>
                     <property name="pipeSize"/>
                     <property name="config-ref"/>
-                    <property name="auxiliary;index" value="60"/>
+                    <property name="auxiliary;index" value="64"/>
                 </properties>
             </pattern>
-            <endpoint direction="Outbound" name="email" type="http://www.mulesoft.org/schema/mule/vm/endpoint" entity-id="VM#5">
+            <endpoint direction="Outbound" name="email" type="http://www.mulesoft.org/schema/mule/vm/endpoint" entity-id="VM#6">
                 <graphicalData x="0" y="0" width="0" height="0"/>
                 <properties>
                     <property name="businessEventsLabel"/>
@@ -685,67 +742,12 @@
                     <property name="path" value="email"/>
                     <property name="encoding"/>
                     <property name="responseTransformer-refs"/>
-                    <property name="auxiliary;index" value="61"/>
-                    <property name="responseTimeout"/>
-                    <property name="mimeType"/>
-                    <property name="connector-ref"/>
-                </properties>
-            </endpoint>
-        </lane>
-    </flow>
-    <flow SubFlow="false" name="sms" type="http://www.mulesoft.org/schema/mule/core/flow" entity-id="d23bf5a1-ab77-480d-ba82-6b5b46b79e73">
-        <properties>
-            <property name="initialState"/>
-            <property name="processingStrategy2"/>
-            <property name="processingStrategy"/>
-            <property name="bussinessEventsLabel"/>
-            <property name="tracking:enable-default-events"/>
-            <property name="auxiliary;index" value="62"/>
-        </properties>
-        <lane hadOnlyOneElement="false" index="0" isChoiceOtherwiseLane="false" entity-id="compartment-lane#9">
-            <graphicalData x="0" y="0" width="0" height="0"/>
-            <endpoint direction="Inbound" name="sms" type="http://www.mulesoft.org/schema/mule/vm/endpoint" entity-id="VM#6">
-                <graphicalData x="0" y="0" width="0" height="0"/>
-                <properties>
-                    <property name="businessEventsLabel"/>
-                    <property name="disableTransportTransformer"/>
-                    <property name="exchange-pattern" value="one-way"/>
-                    <property name="tracking:enable-default-events"/>
-                    <property name="ref"/>
-                    <property name="transformer-refs"/>
-                    <property name="address"/>
-                    <property name="path" value="sms"/>
-                    <property name="encoding"/>
-                    <property name="responseTransformer-refs"/>
-                    <property name="auxiliary;index" value="63"/>
-                    <property name="responseTimeout"/>
-                    <property name="mimeType"/>
-                    <property name="connector-ref"/>
-                </properties>
-            </endpoint>
-            <pattern name="Logger" type="http://www.mulesoft.org/schema/mule/core/logger" entity-id="Logger#2">
-                <graphicalData x="0" y="0" width="0" height="0"/>
-                <properties>
-                    <property name="message"/>
-                    <property name="category"/>
-                    <property name="level" value="INFO"/>
-                    <property name="auxiliary;index" value="64"/>
-                </properties>
-            </pattern>
-            <pattern name="SMS Notification" type="http://www.mulesoft.org/schema/mule/twilio/twilio-connector" entity-id="Twilio#2">
-                <graphicalData x="0" y="0" width="0" height="0"/>
-                <properties>
-                    <property name="to" value="#[payload.mobile]"/>
-                    <property name="body" value="Hello #[payload.first_name]. &#xA;&#x9;&#x9;&#x9;Your Wish-list item, #[payload.sku_name], is in high demand. Better hurry &#xA;&#x9;&#x9;&#x9;up if you want to grab one before we run out! :)"/>
-                    <property name="accountSid"/>
-                    <property name="applicationSid"/>
-                    <property name="org.mule.tooling.ui.modules.core.widgets.meta.ModeAttribute" value="http://www.mulesoft.org/schema/mule/twilio/send-sms-message"/>
-                    <property name="status-callback-flow-ref"/>
-                    <property name="from" value="+5491169834192"/>
-                    <property name="config-ref" value="Twilio"/>
                     <property name="auxiliary;index" value="65"/>
+                    <property name="responseTimeout"/>
+                    <property name="mimeType"/>
+                    <property name="connector-ref"/>
                 </properties>
-            </pattern>
+            </endpoint>
         </lane>
     </flow>
 </mule-configuration>
