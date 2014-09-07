@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:secure-property-placeholder="http://www.mulesoft.org/schema/mule/secure-property-placeholder"
+<mule xmlns:secure-property-placeholder="http://www.mulesoft.org/schema/mule/secure-property-placeholder" 
 	xmlns:apple-push="http://www.mulesoft.org/schema/mule/apple-push"
 	xmlns:email="http://www.mulesoft.org/schema/mule/email"
 	xmlns:smtp="http://www.mulesoft.org/schema/mule/smtp" xmlns:twilio="http://www.mulesoft.org/schema/mule/twilio"
@@ -12,7 +12,7 @@
 	xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
 	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:cxf="http://www.mulesoft.org/schema/mule/cxf"
 	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.5.0"
+	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.5.1"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/xml http://www.mulesoft.org/schema/mule/xml/current/mule-xml.xsd
 http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd
@@ -49,13 +49,12 @@ http://www.mulesoft.org/schema/mule/secure-property-placeholder http://www.mules
 		<mulexml:namespace prefix="mod"
 			uri="http://www.alainn.com/SOA/model/1.0" />
 	</mulexml:namespace-manager>
-    <secure-property-placeholder:config name="Secure_Property_Placeholder" key="${props.key}" location="config.${env}.properties" doc:name="Secure Property Placeholder"/>
 	<db:mysql-config name="MySQL_Configuration"
 		host="${db.host}"
-		port="3306" user="${db.user}" password="${db.password}" database="${db.database}"
+		port="3306" user="${db.user}" password="${db.password}" database="alainn"
 		doc:name="MySQL Configuration" />
 	<apple-push:config name="Apple_Push_Notifications"
-		host="gateway.push.apple.com" port="2195" keystore="pushNotificationsProd.p12" keystorePassword="${apple.keystore.passsword}"
+		host="gateway.push.apple.com" port="2195" keystore="pushNotificationsProd.p12" keystorePassword="${apple.password}"
 		doc:name="Apple Push Notifications" />
 	<smtp:gmail-connector name="Gmail"
 		validateConnections="true" doc:name="Gmail" />
@@ -66,6 +65,7 @@ http://www.mulesoft.org/schema/mule/secure-property-placeholder http://www.mules
 		authToken="${twilio.auth.token}" doc:name="Twilio">
 		<twilio:http-callback-config></twilio:http-callback-config>
 	</twilio:config>
+    <secure-property-placeholder:config name="Secure_Property_Placeholder" key="${vault.key}" location="config.${env}.properties" doc:name="Secure Property Placeholder"/>
 
 	<flow name="NotificationserviceFlow1" doc:name="NotificationserviceFlow1">
 		<https:inbound-endpoint exchange-pattern="request-response"
@@ -141,7 +141,6 @@ http://www.mulesoft.org/schema/mule/secure-property-placeholder http://www.mules
 	<flow name="sms" doc:name="sms">
 		<vm:inbound-endpoint exchange-pattern="one-way"
 			path="sms" doc:name="sms" />
-		<logger level="INFO" doc:name="Logger" />
 		<twilio:send-sms-message config-ref="Twilio"
 			body="Hello #[payload.first_name]. 
 			Your Wish-list item, #[payload.sku_name], is in high demand. Better hurry 
@@ -182,20 +181,6 @@ http://www.mulesoft.org/schema/mule/secure-property-placeholder http://www.mules
 			path="web" doc:name="web" />
 		<http:outbound-endpoint exchange-pattern="request-response"
 			host="localhost" port="8081" method="POST" doc:name="Firebase Notification" />
-	</flow>
-
-	<flow name="alainn-notification-serviceFlow1" doc:name="alainn-notification-serviceFlow1">
-		<http:inbound-endpoint exchange-pattern="request-response"
-			host="localhost" port="8081" path="testsms" doc:name="HTTP" />
-		<expression-transformer doc:name="Expression"
-			expression="
-        	[ 'first_name' : 'Nial', 'sku_name' : 'Soap', 'mobile' : '+5491169834192', 'email' : 'nial.darbey@mulesoft.com', 'body' : 'Hi Nial']
-        " />
-        <data-mapper:transform doc:name="DataMapper"/>
-		<vm:outbound-endpoint exchange-pattern="one-way"
-			path="email" doc:name="email" />
-
-
 	</flow>
 
 
